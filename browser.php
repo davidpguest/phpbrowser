@@ -17,7 +17,7 @@ function obtainpage($url) {
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_AUTOREFERER, true);
 	curl_setopt($ch, CURLOPT_MAXREDIRS, 20);
-	curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (X11; CrOS x86_64 12607.81.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.119 Safari/537.36');
+	curl_setopt($ch, CURLOPT_USERAGENT,'PHP text-only browser 1.0');
 	$page = curl_exec($ch);
 	if($page===false) {
 		echo curl_error($ch);
@@ -31,7 +31,10 @@ function minimalist($text) {
 	$text = stristr($text, "</body>", true);
 	$text = stristr($text, "<body");
 	$text = ltrim($text, ">");
-	$search = array("/\r/", "/[\n\t]+/", '/<script\b[^>]*>.*?<\/script>/i','/<!--(.*)-->/Uis', '/<style\b[^>]*>.*?<\/style>/i');
+	$search = array("/\r/", "/[\n\t]+/", 
+			'/<script\b[^>]*>.*?<\/script>/i',
+			'/<!--(.*)-->/Uis', 
+			'/<style\b[^>]*>.*?<\/style>/i');
 	$replace = array('',' ', '', '', '', '');
 	$text = preg_replace($search, $replace, $text);
 	$text = str_replace("</li>", "&nbsp;", $text);
@@ -180,9 +183,15 @@ $base=obtainpage($url);
 $text = minimalist($base);
 echo "<p><b>$url</b></p>";
 if(isset($_REQUEST["f"])) {
-	echo "<form method=\"get\" action=\"$me?p=http://duckduckgo.com/html\"><input name=\"q\" type=\"text\" style=\"width:50%; height: 20px;\" />&nbsp;<input name=\"sub\" type=\"submit\" value=\"?\" /></form>";
+	echo "<form method=\"get\" action=\"$me?p=http://duckduckgo.com/html\">
+		<input name=\"q\" type=\"text\" style=\"width:50%; height: 20px;\" />&nbsp;
+		<input name=\"sub\" type=\"submit\" value=\"?\" />
+		</form>";
 } elseif(in_array("a", array_keys($_REQUEST))) {
-	echo "<form method=\"get\" action=\"$me\"><input name=\"a\" type=\"text\" style=\"width:80%; height: 20px;\" value=\"$url\" />&nbsp;<input name=\"sub\" type=\"submit\" value=\"...\" /></form>";
+	echo "<form method=\"get\" action=\"$me\">
+		<input name=\"a\" type=\"text\" style=\"width:80%; height: 20px;\" value=\"$url\" />&nbsp;
+		<input name=\"sub\" type=\"submit\" value=\"...\" />
+		</form>";
 }
 echo "<p><a href=\"$me\">Home</a> <a href=\"$me?a=\">Address</a> <a href=\"$me?f=1\">Search</a></p>";
 flush();
