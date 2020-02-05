@@ -2,10 +2,13 @@
 
 //----------------application---------------
 
+//extend standard time limit for pages that take a while to load
 set_time_limit(300);
 
+//page launched initially
 $url = "http://www.bbc.co.uk";
 
+//curl function to fetch requested page
 function obtainpage($url) {
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
@@ -23,6 +26,7 @@ function obtainpage($url) {
 	return $page;
 }
 
+//pre-processing html to remove as much unwanted html as possible
 function minimalist($text) {
 	$text = stristr($text, "</body>", true);
 	$text = stristr($text, "<body");
@@ -34,6 +38,7 @@ function minimalist($text) {
 	return $text;
 }
 
+//function to parse html tags for particular attributes
 function getattr($text, $attr) {
 	$text = str_replace(array('"', "'"), array(' ', ' '), $text);
 	$text .= " "; $attr .= "=";
@@ -45,14 +50,17 @@ function getattr($text, $attr) {
 	return $text;
 }
 
+//encode links so they can be safely passed in a query string
 function packlink($link) {
 	return strtr(base64_encode($link), '+/=', '._-');
 }
 
+//decode them to use later
 function unpacklink($link) {
 	return base64_decode(strtr($link, '._-', '+/='));
 }
 
+//chop text up into segments using links as boundaries
 function gettagbit($text) {
 	$output = "";
 	$images = array();
@@ -103,6 +111,7 @@ function gettagbit($text) {
 	return array($output, $text);
 }
 
+//get base URL from a supplied address
 function basify($url) {
 	$url = rtrim($url, "/");
 	$url = str_replace("//", "**", $url);
@@ -119,6 +128,7 @@ function basify($url) {
 	return $url;
 }
 
+//sanitise url before displaying on the screen
 function cleanurl($url) {
 	$url = strip_tags($url);
 	$url = filter_var($url, FILTER_SANITIZE_URL);
@@ -153,35 +163,34 @@ a:link, a:active, a:visited, a:hover { color: #00f; }
 
 //-------------page display----------------
 
-	$me = $_SERVER['PHP_SELF'];
-	if(isset($_REQUEST["s"])) {
-		$url = unpacklink($_REQUEST["s"]);
-	} elseif(isset($_REQUEST["p"])) {
-		$url = cleanurl($_REQUEST["p"]);
-	} elseif(isset($_REQUEST["q"])) {
-		$url = "https://duckduckgo.com/html?q=" . cleanurl($_REQUEST["q"]);
-	} elseif(isset($_REQUEST["a"])) {
-		$url = cleanurl($_REQUEST["a"]);
-		if(!strstr($url, "://")) { $url = "http://$url"; }
-	}
-	$baseurl = basify($url);
-	$base=obtainpage($url);
-	$text = minimalist($base);
-	echo "<p><b>$url</b></p>";
-	if(isset($_REQUEST["f"])) {
-		echo "<form method=\"get\" action=\"$me?p=http://duckduckgo.com/html\"><input name=\"q\" type=\"text\" style=\"width:50%; height: 20px;\" />&nbsp;<input name=\"sub\" type=\"submit\" value=\"?\" /></form>";
-	} elseif(in_array("a", array_keys($_REQUEST))) {
-		echo "<form method=\"get\" action=\"$me\"><input name=\"a\" type=\"text\" style=\"width:80%; height: 20px;\" value=\"$url\" />&nbsp;<input name=\"sub\" type=\"submit\" value=\"...\" /></form>";
-	}
-	echo "<p><a href=\"$me\">Home</a> <a href=\"$me?a=\">Address</a> <a href=\"$me?f=1\">Search</a></p>";
-	flush();
-	while(strstr($text, "<") && strstr($text, ">")) {
-		$responsebits = gettagbit($text);
-		echo $responsebits[0]; flush();
-		$text = $responsebits[1];
-	}
-
-
+//handle the display on the screen
+$me = $_SERVER['PHP_SELF'];
+if(isset($_REQUEST["s"])) {
+	$url = unpacklink($_REQUEST["s"]);
+} elseif(isset($_REQUEST["p"])) {
+	$url = cleanurl($_REQUEST["p"]);
+} elseif(isset($_REQUEST["q"])) {
+	$url = "https://duckduckgo.com/html?q=" . cleanurl($_REQUEST["q"]);
+} elseif(isset($_REQUEST["a"])) {
+	$url = cleanurl($_REQUEST["a"]);
+	if(!strstr($url, "://")) { $url = "http://$url"; }
+}
+$baseurl = basify($url);
+$base=obtainpage($url);
+$text = minimalist($base);
+echo "<p><b>$url</b></p>";
+if(isset($_REQUEST["f"])) {
+	echo "<form method=\"get\" action=\"$me?p=http://duckduckgo.com/html\"><input name=\"q\" type=\"text\" style=\"width:50%; height: 20px;\" />&nbsp;<input name=\"sub\" type=\"submit\" value=\"?\" /></form>";
+} elseif(in_array("a", array_keys($_REQUEST))) {
+	echo "<form method=\"get\" action=\"$me\"><input name=\"a\" type=\"text\" style=\"width:80%; height: 20px;\" value=\"$url\" />&nbsp;<input name=\"sub\" type=\"submit\" value=\"...\" /></form>";
+}
+echo "<p><a href=\"$me\">Home</a> <a href=\"$me?a=\">Address</a> <a href=\"$me?f=1\">Search</a></p>";
+flush();
+while(strstr($text, "<") && strstr($text, ">")) {
+	$responsebits = gettagbit($text);
+	echo $responsebits[0]; flush();
+	$text = $responsebits[1];
+}
 
 ?>
 <br />
