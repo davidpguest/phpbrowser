@@ -10,6 +10,7 @@ $url = "http://www.bbc.co.uk";
 
 //curl function to fetch requested page
 function obtainpage($url) {
+	$ua = $_SERVER['HTTP_USER_AGENT'];
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -17,7 +18,7 @@ function obtainpage($url) {
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_AUTOREFERER, true);
 	curl_setopt($ch, CURLOPT_MAXREDIRS, 20);
-	curl_setopt($ch, CURLOPT_USERAGENT,'PHP text-only browser 1.0');
+	curl_setopt($ch, CURLOPT_USERAGENT, $ua);
 	$page = curl_exec($ch);
 	if($page===false) {
 		echo curl_error($ch);
